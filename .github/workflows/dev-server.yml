@@ -24,11 +24,6 @@ jobs:
           touch ./application-dev.yml
           echo "${{ secrets.APPLICATION_DEV}}" > ./application-dev.yml
 
-      - name: Make .p8 file
-        run: |
-          mkdir -p ./src/main/resources/static/apple
-          echo "${{ secrets.APPLE_P8 }}" > ./src/main/resources/static/apple/AuthKey_J247CM48UY.p8
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -40,8 +35,8 @@ jobs:
       - name: web docker build and push
         run: |
           docker login -u ${{ secrets.DOCKER_DEV_USERNAME }} -p ${{ secrets.DOCKER_DEV_PASSWORD }}
-          docker build --platform linux/amd64 -t ${{ secrets.DOCKER_DEV_USERNAME }}/ttoon-server .
-          docker push ${{ secrets.DOCKER_DEV_USERNAME }}/ttoon-server
+          docker build --platform linux/amd64 -t ${{ secrets.DOCKER_DEV_USERNAME }}/hongmumuk_server .
+          docker push ${{ secrets.DOCKER_DEV_USERNAME }}/hongmumuk_server
 
       # ssh로 EC2 접속해서 도커 컨테이너를 모두 멈춘 후, 도커 파일을 새로 받아 다시 docker-compose로 이미지를 실행시킨다.
       - name: executing remote ssh commands using password
@@ -52,7 +47,6 @@ jobs:
           key: ${{ secrets.DEV_PRIVATE_KEY }}
           script: |
             sudo docker rm -f $(sudo docker ps -qa)
-            sudo docker pull ${{ secrets.DOCKER_DEV_USERNAME }}/ttoon-server
-             sudo docker pull chanhele/ttoon-front
+            sudo docker pull ${{ secrets.DOCKER_DEV_USERNAME }}/hongmumuk_server
             sudo docker-compose up -d
             sudo docker image prune -f
