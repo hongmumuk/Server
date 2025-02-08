@@ -1,10 +1,9 @@
-package hongmumuk.hongmumuk.Entity;
+package hongmumuk.hongmumuk.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jdk.jfr.Enabled;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,15 +14,21 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class Restaurant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
-    private String email;
-    private String password;
+    private String address;
+    private Integer likes;
+    private Integer views;
+    private String menuUrl;
+    private Double longitude;
+    private Double latitude;
+    private Category category;
+    private Double front;
+    private Double back;
 
 }
-
