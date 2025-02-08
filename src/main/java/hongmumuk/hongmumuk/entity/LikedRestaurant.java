@@ -1,4 +1,4 @@
-package hongmumuk.hongmumuk.Entity;
+package hongmumuk.hongmumuk.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
