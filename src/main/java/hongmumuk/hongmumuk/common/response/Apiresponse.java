@@ -32,7 +32,7 @@ public class Apiresponse<T> {
     }
 
     // 실패 시 응답, 데이터 미포함
-    public static <T> Apiresponse<T> onFailure(ErrorStatus status) {
+    public static <T> Apiresponse<T> isFailed(ErrorStatus status) {
         return new Apiresponse<>(false, status.getCode(), status.getMessage(), null);
     }
 }

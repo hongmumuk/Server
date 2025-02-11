@@ -1,23 +1,31 @@
 package hongmumuk.hongmumuk.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.univcert.api.UnivCert;
 import hongmumuk.hongmumuk.common.response.Apiresponse;
 import hongmumuk.hongmumuk.common.response.status.ErrorStatus;
 import hongmumuk.hongmumuk.common.response.status.SuccessStatus;
+import hongmumuk.hongmumuk.dto.EmailDto;
 import hongmumuk.hongmumuk.dto.JwtToken;
 import hongmumuk.hongmumuk.dto.JwtTokenProvider;
 import hongmumuk.hongmumuk.dto.SignInDto;
 import hongmumuk.hongmumuk.entity.User;
 import hongmumuk.hongmumuk.repository.UserRepository;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +36,23 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper;
+
+    @Value("${univcert_api_key}")
+    private String univcert_api_key;
 
     @Transactional
-    public JwtToken signIn(String email, String password) {
+    public ResponseEntity<?> logIn(String email, String password) {
+        Optional<User> user = userRepository.findByEmail(email);
+
+        if(user.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
+        else {
+            if(!passwordEncoder.matches(password, user.get().getPassword())){
+                return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.WRONG_INFO_ERROR));
+            }
+        }
         // 1. username + password 를 기반으로 Authentication 객체 생성
         // 이때 authentication 은 인증 여부를 확인하는 authenticated 값이 false
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
@@ -40,22 +62,62 @@ public class UserService {
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
         // 3. 인증 정보를 기반으로 JWT 토큰 생성
+        JwtToken jwtToken = jwtTokenProvider.generateToken(authentication);
 
-        return jwtTokenProvider.generateToken(authentication);
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK, jwtToken));
     }
 
     @Transactional
     public ResponseEntity<?> joinService(SignInDto signInDto) {
-
-        if(userRepository.existsByEmail(signInDto.getEmail())){
-            return ResponseEntity.ok(Apiresponse.onFailure(ErrorStatus.BAD_REQUEST));
-        }
-
         User user = User.builder()
                 .email(signInDto.getEmail())
                 .password(passwordEncoder.encode(signInDto.getPassword()))
                 .build();
         userRepository.save(user);
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+    }
+
+    @Transactional
+    public ResponseEntity<?> sendService(EmailDto emailDto) throws IOException {
+        if(userRepository.existsByEmail(emailDto.getEmail())) {
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.USER_EXISTS));
+        }
+        else {
+            Map<String, Object> send = UnivCert.certify(univcert_api_key, emailDto.getEmail(), "홍익대학교", emailDto.getUniv_check());
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode response = objectMapper.readTree(objectMapper.writeValueAsString(send));
+            String successMessage = response.get("success").asText();
+
+            if(successMessage.equals("true")) {
+                return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+            }
+            else {
+                String errorMessage = response.get("message").asText();
+                return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.BAD_REQUEST, errorMessage));
+            }
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<?> verifyService(EmailDto.VerifyDto verifyDto) throws IOException {
+        Map<String, Object> verify = UnivCert.certifyCode(univcert_api_key, verifyDto.getEmail(), "홍익대학교", verifyDto.getCode());
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode response = objectMapper.readTree(objectMapper.writeValueAsString(verify));
+        String successMessage = response.get("success").asText();
+
+        UnivCert.clear(univcert_api_key);
+
+        if(successMessage.equals("true")) {
+            return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+        }
+        else {
+            String errorMessage = response.get("message").asText();
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.BAD_REQUEST, errorMessage));
+        }
+    }
+
+    @Transactional
+    public void clear() throws IOException {
+        UnivCert.clear(univcert_api_key);
     }
 }
