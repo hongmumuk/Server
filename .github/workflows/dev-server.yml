@@ -24,6 +24,11 @@ jobs:
           touch ./application-dev.yml
           echo "${{ secrets.APPLICATION_DEV}}" > ./application-dev.yml
 
+
+      - name: Set UNIVCERT_API_KEY as an environment variable
+        run: |
+          echo "UNIVCERT_API_KEY=${{ secrets.UNIVCERT_API_KEY }}" >> $UNIVCERT_API_KEY
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
