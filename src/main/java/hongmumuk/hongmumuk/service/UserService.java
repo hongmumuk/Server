@@ -38,8 +38,7 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
 
-    @Value("${UNIVCERT_API_KEY}")
-    private String UNIVCERT_API_KEY;
+    private final String UNIVCERT_API_KEY = "eef2480f-5db2-4d62-a2e6-d6dcb2279bbb";
 
     @Transactional
     public ResponseEntity<?> logIn(String email, String password) {
