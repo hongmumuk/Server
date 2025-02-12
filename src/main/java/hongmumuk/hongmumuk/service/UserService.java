@@ -98,7 +98,6 @@ public class UserService {
         }
     }
 
-    @Transactional
     public ResponseEntity<?> verifyService(EmailDto.VerifyDto verifyDto) throws IOException {
         Map<String, Object> verify = UnivCert.certifyCode(UNIVCERT_API_KEY, verifyDto.getEmail(), "홍익대학교", verifyDto.getCode());
         ObjectMapper objectMapper = new ObjectMapper();
@@ -116,7 +115,6 @@ public class UserService {
         }
     }
 
-    @Transactional
     public void clear() throws IOException {
         UnivCert.clear(UNIVCERT_API_KEY);
     }
