@@ -27,7 +27,7 @@ jobs:
 
       - name: Set UNIVCERT_API_KEY as an environment variable
         run: |
-          echo "UNIVCERT_API_KEY=${{ secrets.UNIVCERT_API_KEY }}" >> $UNIVCERT_API_KEY
+          echo "UNIVCERT_API_KEY=${{ secrets.UNIVCERT_API_KEY }}" >> $GITHUB_ENV
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
