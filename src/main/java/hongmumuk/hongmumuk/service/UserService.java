@@ -38,8 +38,8 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
 
-    @Value("${univcert_api_key}")
-    private String univcert_api_key;
+    @Value("${UNIVCERT_API_KEY}")
+    private String UNIVCERT_API_KEY;
 
     @Transactional
     public ResponseEntity<?> logIn(String email, String password) {
@@ -83,7 +83,7 @@ public class UserService {
             return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.USER_EXISTS));
         }
         else {
-            Map<String, Object> send = UnivCert.certify(univcert_api_key, emailDto.getEmail(), "홍익대학교", emailDto.getUniv_check());
+            Map<String, Object> send = UnivCert.certify(UNIVCERT_API_KEY, emailDto.getEmail(), "홍익대학교", emailDto.getUniv_check());
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode response = objectMapper.readTree(objectMapper.writeValueAsString(send));
             String successMessage = response.get("success").asText();
@@ -100,12 +100,12 @@ public class UserService {
 
     @Transactional
     public ResponseEntity<?> verifyService(EmailDto.VerifyDto verifyDto) throws IOException {
-        Map<String, Object> verify = UnivCert.certifyCode(univcert_api_key, verifyDto.getEmail(), "홍익대학교", verifyDto.getCode());
+        Map<String, Object> verify = UnivCert.certifyCode(UNIVCERT_API_KEY, verifyDto.getEmail(), "홍익대학교", verifyDto.getCode());
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode response = objectMapper.readTree(objectMapper.writeValueAsString(verify));
         String successMessage = response.get("success").asText();
 
-        UnivCert.clear(univcert_api_key);
+        UnivCert.clear(UNIVCERT_API_KEY);
 
         if(successMessage.equals("true")) {
             return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
@@ -118,6 +118,6 @@ public class UserService {
 
     @Transactional
     public void clear() throws IOException {
-        UnivCert.clear(univcert_api_key);
+        UnivCert.clear(UNIVCERT_API_KEY);
     }
 }
