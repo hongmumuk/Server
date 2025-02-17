@@ -1,5 +1,8 @@
 package hongmumuk.hongmumuk.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -7,9 +10,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 
-@RequiredArgsConstructor
+@Getter
+@NoArgsConstructor
 public class CustomUserDetail implements UserDetails {
-    private final User user;
+    private User user;
+
+    public CustomUserDetail(User user){
+        this.user = user;
+    }
 
     @Override
     public boolean isAccountNonExpired() {
