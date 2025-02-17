@@ -1,8 +1,6 @@
 package hongmumuk.hongmumuk.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.univcert.api.UnivCert;
 import hongmumuk.hongmumuk.common.response.Apiresponse;
 import hongmumuk.hongmumuk.common.response.status.ErrorStatus;
 import hongmumuk.hongmumuk.common.response.status.SuccessStatus;
@@ -10,22 +8,29 @@ import hongmumuk.hongmumuk.dto.EmailDto;
 import hongmumuk.hongmumuk.dto.JwtToken;
 import hongmumuk.hongmumuk.dto.JwtTokenProvider;
 import hongmumuk.hongmumuk.dto.SignInDto;
+import hongmumuk.hongmumuk.entity.CustomUserDetail;
+import hongmumuk.hongmumuk.entity.EmailCode;
+import hongmumuk.hongmumuk.entity.RefreshToken;
 import hongmumuk.hongmumuk.entity.User;
+import hongmumuk.hongmumuk.repository.EmailCodeRepository;
+import hongmumuk.hongmumuk.repository.RefreshTokenRepository;
 import hongmumuk.hongmumuk.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
-import java.util.Map;
+import java.sql.Ref;
+import java.time.LocalDateTime;
 import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -33,12 +38,20 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final EmailCodeRepository emailCodeRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
+    private final JavaMailSender javaMailSender;
+    private static final String senderEmail = "wjsalswp303@gmail.com";
+    private static String randNum;
 
-    private final String UNIVCERT_API_KEY = "eef2480f-5db2-4d62-a2e6-d6dcb2279bbb";
+    // 랜덤 인증번호 생성
+    public static void createNumber() {
+        randNum = String.format("%06d", (int)(Math.random() * 1000000));
+    }
 
     @Transactional
     public ResponseEntity<?> logIn(String email, String password) {
@@ -63,6 +76,21 @@ public class UserService {
         // 3. 인증 정보를 기반으로 JWT 토큰 생성
         JwtToken jwtToken = jwtTokenProvider.generateToken(authentication);
 
+        // 리프레쉬 토큰 객체 생성
+        RefreshToken refreshToken = RefreshToken.builder()
+                .id(user.get().getId().toString())
+                .refreshToken(jwtToken.getRefreshToken())
+                .build();
+
+        // 리프레쉬토큰 DB 에 저장.
+        RefreshToken existRefreshToken = refreshTokenRepository.findById(user.get().getId()).orElse(null);
+        if(existRefreshToken == null) // 해당 회원에 대한 리프레쉬토큰이 저장된 적이 없을 때
+            refreshTokenRepository.save(refreshToken);
+        else { // 한번이라도 리프레쉬토큰이 저장된 적이 있을 때 -> 리프레쉬토큰 값만 업데이트.
+            existRefreshToken.updateValue(jwtToken.getRefreshToken());
+            refreshTokenRepository.save(existRefreshToken);
+        }
+
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK, jwtToken));
     }
 
@@ -82,39 +110,86 @@ public class UserService {
             return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.USER_EXISTS));
         }
         else {
-            Map<String, Object> send = UnivCert.certify(UNIVCERT_API_KEY, emailDto.getEmail(), "홍익대학교", emailDto.getUniv_check());
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode response = objectMapper.readTree(objectMapper.writeValueAsString(send));
-            String successMessage = response.get("success").asText();
+            createNumber();
 
-            if(successMessage.equals("true")) {
-                return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
-            }
-            else {
-                String errorMessage = response.get("message").asText();
-                return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.BAD_REQUEST, errorMessage));
-            }
+            EmailCode emailCode = EmailCode.builder()
+                    .email(emailDto.getEmail())
+                    .code(randNum)
+                    .createdAt(LocalDateTime.now())
+                    .expirationTime(LocalDateTime.now().plusMinutes(5))
+                    .build();
+
+            emailCodeRepository.save(emailCode);
+
+            SimpleMailMessage message = new SimpleMailMessage();
+
+            message.setFrom(senderEmail);
+            message.setTo(emailDto.getEmail());
+            message.setSubject("홍무묵 이메일 인증");
+            String body = "";
+            body += "요청하신 인증 번호입니다.";
+            body += " " + randNum + " ";
+            body += " " + "해당 인증번호를 입력해주세요.";
+            message.setText(body);
+
+            javaMailSender.send(message);
         }
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
     }
 
+    @Transactional
     public ResponseEntity<?> verifyService(EmailDto.VerifyDto verifyDto) throws IOException {
-        Map<String, Object> verify = UnivCert.certifyCode(UNIVCERT_API_KEY, verifyDto.getEmail(), "홍익대학교", verifyDto.getCode());
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode response = objectMapper.readTree(objectMapper.writeValueAsString(verify));
-        String successMessage = response.get("success").asText();
+        Optional<EmailCode> emailCode = emailCodeRepository.findByEmail(verifyDto.getEmail());
 
-        UnivCert.clear(UNIVCERT_API_KEY);
+        // 해당 이메일에 대한 인증번호가 발급되지 않았을 때
+        if(emailCode.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.BAD_REQUEST));
+        }
 
-        if(successMessage.equals("true")) {
+        // 인증번호가 만료되었을때
+        if(emailCode.get().getExpirationTime().isBefore(LocalDateTime.now())){
+            emailCodeRepository.delete(emailCode.get());
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.CODE_EXPIRED));
+        }
+
+        // 인증 성공
+        if(emailCode.get().getCode().equals(verifyDto.getCode())){
             return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
         }
-        else {
-            String errorMessage = response.get("message").asText();
-            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.BAD_REQUEST, errorMessage));
+        else{ // 인증 실패
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.WRONG_CODE_ERROR));
         }
     }
 
-    public void clear() throws IOException {
-        UnivCert.clear(UNIVCERT_API_KEY);
+    @Transactional
+    public ResponseEntity<?> reissue(String accessToken, String refreshToken){
+        // 1. Refresh Token 검증
+        if (!jwtTokenProvider.validateToken(refreshToken))
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.WRONG_TOKEN_ERROR));
+
+        // 2. Access Token 에서 Member ID 가져오기
+        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+        CustomUserDetail userDetail = (CustomUserDetail) authentication.getPrincipal();
+
+        String userEmail = userDetail.getUsername();
+        Optional<User> user = userRepository.findByEmail(userEmail);
+        // 회원이 존재하지 않을 때, 이메일이 틀렸을 때
+        if(user.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
+        Optional<RefreshToken> existRefreshToken = refreshTokenRepository.findById(user.get().getId().toString());
+        if(existRefreshToken.isEmpty()) // 해당 유저의 리프레쉬 토큰이 저장이 안되어 있을 때
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.BAD_REQUEST));
+
+        // 3. DB에 매핑 되어있는 Member ID(key)와 토큰값이 같지않으면 에러 리턴
+        if(!refreshToken.equals(existRefreshToken.get().getRefreshToken()))
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.WRONG_TOKEN_ERROR));
+
+        // 4. Vaule값이 같다면 토큰 재발급 진행
+        JwtToken jwtToken = jwtTokenProvider.generateToken(authentication);
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.CREATED, jwtToken));
     }
+
 }
