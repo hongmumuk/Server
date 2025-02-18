@@ -37,8 +37,8 @@ dependencies {
     // Swagger API
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
 
-    // Univcert API
-    implementation 'com.github.in-seo:univcert:master-SNAPSHOT'
+    // SMTP
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     // Spring Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
