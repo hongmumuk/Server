@@ -26,6 +26,15 @@ public class User {
     private Long id;
 
     private String email;
+    private String nickName;
     private String password;
     private String role;
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
 }

@@ -70,6 +70,10 @@ public class JwtTokenProvider {
 
     // Jwt 토큰을 복호화하여 토큰에 들어있는 정보를 꺼내는 메서드
     public UsernamePasswordAuthenticationToken getAuthentication(String accessToken) {
+
+        if (accessToken == null) {
+            throw new RuntimeException("토큰이 없습니다.");  // 예외 던지지 않고 null 반환 가능
+        }
         // Jwt 토큰 복호화
         Claims claims = parseClaims(accessToken);
 
