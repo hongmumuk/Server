@@ -1,18 +1,12 @@
 package hongmumuk.hongmumuk.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hongmumuk.hongmumuk.common.response.Apiresponse;
 import hongmumuk.hongmumuk.common.response.status.ErrorStatus;
 import hongmumuk.hongmumuk.common.response.status.SuccessStatus;
-import hongmumuk.hongmumuk.dto.EmailDto;
-import hongmumuk.hongmumuk.dto.JwtToken;
-import hongmumuk.hongmumuk.dto.JwtTokenProvider;
-import hongmumuk.hongmumuk.dto.SignInDto;
-import hongmumuk.hongmumuk.entity.CustomUserDetail;
-import hongmumuk.hongmumuk.entity.EmailCode;
-import hongmumuk.hongmumuk.entity.RefreshToken;
-import hongmumuk.hongmumuk.entity.User;
+import hongmumuk.hongmumuk.dto.*;
+import hongmumuk.hongmumuk.entity.*;
 import hongmumuk.hongmumuk.repository.EmailCodeRepository;
+import hongmumuk.hongmumuk.repository.LikedRestaurantRepository;
 import hongmumuk.hongmumuk.repository.RefreshTokenRepository;
 import hongmumuk.hongmumuk.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.sql.Ref;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -40,10 +34,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final EmailCodeRepository emailCodeRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final LikedRestaurantRepository likedRestaurantRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final ObjectMapper objectMapper;
     private final JavaMailSender javaMailSender;
     private static final String senderEmail = "wjsalswp303@gmail.com";
     private static String randNum;
@@ -192,4 +186,120 @@ public class UserService {
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.CREATED, jwtToken));
     }
 
+    @Transactional
+    public ResponseEntity<?> findProfile(String email){
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if(userOptional.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
+
+        User user = userOptional.get();
+
+        ProfileDto profileDto = ProfileDto.builder()
+                .nickName(user.getNickName())
+                .email(user.getEmail())
+                .build();
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK, profileDto));
+    }
+
+    @Transactional
+    public ResponseEntity<?> getLikedR(String email){
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if(userOptional.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
+
+        User user = userOptional.get();
+
+        List<LikedRestaurant> likedRestaurants = likedRestaurantRepository.findByUser(user);
+
+        if(likedRestaurants.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.LIKED_NOT_EXISTS));
+        }
+
+        List<RestaurantPageDto> restaurantPageDtos = null;
+
+        for (LikedRestaurant likedRestaurant : likedRestaurants) {
+            Restaurant restaurant = likedRestaurant.getRestaurant();
+
+            RestaurantPageDto restaurantPageDto = RestaurantPageDto.from(restaurant);
+
+            restaurantPageDtos.add(restaurantPageDto);
+        }
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK, restaurantPageDtos));
+    }
+
+    @Transactional
+    public ResponseEntity<?> modifyPassword(String email, String newPassword){
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if(userOptional.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
+
+        User user = userOptional.get();
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+    }
+
+    public ResponseEntity<?> checkPassword(String email, String password){
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if(userOptional.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
+
+        User user = userOptional.get();
+
+        if(passwordEncoder.matches(password, user.getPassword())){
+            return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+        }
+        else{
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.INCORRECT_PASSWORD));
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<?> modifyNickname(String email, String nickname){
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if(userOptional.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
+
+        User user = userOptional.get();
+
+        user.setNickName(nickname);
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+    }
+
+    @Transactional
+    public ResponseEntity<?> deleteUser(String email){
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if(userOptional.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
+
+        User user = userOptional.get();
+
+        List<LikedRestaurant> likedRestaurants = likedRestaurantRepository.findByUser(user);
+
+        likedRestaurantRepository.deleteAll(likedRestaurants);
+
+        userRepository.delete(user);
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+    }
 }

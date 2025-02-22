@@ -1,5 +1,6 @@
 package hongmumuk.hongmumuk.common.configs;
 
+import hongmumuk.hongmumuk.dto.JwtFilter;
 import hongmumuk.hongmumuk.dto.LoginFilter;
 import hongmumuk.hongmumuk.dto.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -42,10 +44,13 @@ public class SecurityConfig {
                 // JWT를 사용하기 때문에 세션을 사용하지 않음
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/**").permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/api/profile", "/api/profile/*", "/api/restaurant/like", "/api/restaurant/dislike").authenticated()
+                                .anyRequest().permitAll()
 //                        .requestMatchers("/members/test").hasRole("USER")
-//                        .anyRequest().authenticated()
+
                 )
+                .addFilterBefore(new JwtFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
                 // JWT 인증을 위하여 직접 구현한 필터를 UsernamePasswordAuthenticationFilter 전에 실행
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration)), UsernamePasswordAuthenticationFilter.class).build();
     }
