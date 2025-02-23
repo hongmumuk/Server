@@ -24,6 +24,10 @@ public class JwtFilter extends OncePerRequestFilter {
         if(StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
             jwtToken = authorization.substring(7);
         }
+        else{
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if(StringUtils.hasText(jwtToken) && jwtTokenProvider.validateToken(jwtToken)) {
             Authentication authentication = jwtTokenProvider.getAuthentication(jwtToken);
