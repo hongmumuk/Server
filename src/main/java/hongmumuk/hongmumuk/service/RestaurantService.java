@@ -2,19 +2,18 @@ package hongmumuk.hongmumuk.service;
 
 import hongmumuk.hongmumuk.common.JwtUtil;
 import hongmumuk.hongmumuk.common.response.Apiresponse;
+import hongmumuk.hongmumuk.common.response.status.ErrorStatus;
 import hongmumuk.hongmumuk.common.response.status.SuccessStatus;
 import hongmumuk.hongmumuk.dto.LikeAndDislikeDto;
-import hongmumuk.hongmumuk.entity.LikedRestaurant;
-import hongmumuk.hongmumuk.entity.Restaurant;
-import hongmumuk.hongmumuk.entity.User;
-import hongmumuk.hongmumuk.repository.LikedRestaurantRepository;
-import hongmumuk.hongmumuk.repository.RestaurantRepository;
-import hongmumuk.hongmumuk.repository.UserRepository;
+import hongmumuk.hongmumuk.dto.RestaurantDto;
+import hongmumuk.hongmumuk.entity.*;
+import hongmumuk.hongmumuk.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,6 +24,7 @@ public class RestaurantService {
     private final RestaurantRepository restaurantRepository;
     private final LikedRestaurantRepository likedRestaurantRepository;
     private final UserRepository userRepository;
+    private final BlogRepository blogRepository;
 
     // 식당 좋아요 추가 기능
     @Transactional
@@ -33,9 +33,12 @@ public class RestaurantService {
         Long likedRestaurantId = likeAndDislikeDto.getId();
 
         Optional<User> userId = userRepository.findByEmail(userEmail);
-        Optional<Restaurant> restaurantId = restaurantRepository.findById(likedRestaurantId);
-
+        if(userId.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
         User user = userId.get();
+
+        Optional<Restaurant> restaurantId = restaurantRepository.findById(likedRestaurantId);
         Restaurant restaurant = restaurantId.get();
 
         LikedRestaurant likedRestaurant = LikedRestaurant.builder()
@@ -43,6 +46,7 @@ public class RestaurantService {
                 .restaurant(restaurant)
                 .build();
 
+        restaurant.setLikes(restaurant.getLikes()+1);
         likedRestaurantRepository.save(likedRestaurant);
 
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
@@ -55,9 +59,12 @@ public class RestaurantService {
         Long dislikedRestaurantId = likeAndDislikeDto.getId();
 
         Optional<User> userId = userRepository.findByEmail(userEmail);
-        Optional<Restaurant> restaurantId = restaurantRepository.findById(dislikedRestaurantId);
-
+        if(userId.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
         User user = userId.get();
+
+        Optional<Restaurant> restaurantId = restaurantRepository.findById(dislikedRestaurantId);
         Restaurant restaurant = restaurantId.get();
 
         LikedRestaurant dislikedRestaurant = LikedRestaurant.builder()
@@ -65,8 +72,58 @@ public class RestaurantService {
                 .restaurant(restaurant)
                 .build();
 
+        restaurant.setLikes(restaurant.getLikes()-1);
         likedRestaurantRepository.delete(dislikedRestaurant);
 
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
     }
+
+    @Transactional
+    public ResponseEntity<?> findRestaurant(int restaurantId) {
+        // 식당 정보 가져오기 -> name, likes, category, longitude, latitude, front, back
+        Optional<Restaurant> restaurant = restaurantRepository.findById((long) restaurantId);
+        String name = restaurant.get().getName();
+        Integer likes = restaurant.get().getLikes();
+        String category = String.valueOf(restaurant.get().getCategory());
+        Double longitude = restaurant.get().getLongitude();
+        Double latitude = restaurant.get().getLatitude();
+        Double front = restaurant.get().getFront();
+        Double back = restaurant.get().getBack();
+        boolean hasLiked = false;
+
+        // 사용자가 좋아요 했는지 가져오기
+        String userEmail = JwtUtil.getCurrentUserEmail();
+        Optional<User> userId = userRepository.findByEmail(userEmail);
+        if(userId.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
+        User user = userId.get();
+        Optional<LikedRestaurant> likedRestaurant = likedRestaurantRepository.findByUserAndId(user,((long) restaurantId));
+        if(likedRestaurant.isEmpty()){
+            hasLiked = false;
+        }
+        else {
+            hasLiked = true;
+        }
+
+        // 블로그 정보 가져오기
+        List<Blog> blog = blogRepository.findAllByRestaurant(restaurant);
+
+        RestaurantDto restaurantDto = RestaurantDto.builder()
+                .id(String.valueOf(restaurantId))
+                .name(name)
+                .likes(likes)
+                .category(category)
+                .longitude(longitude)
+                .latitude(latitude)
+                .hasLiked(hasLiked)
+                .front(front)
+                .back(back)
+                .blogs(blog)
+                .build();
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK, restaurantDto));
+    }
+
+
 }

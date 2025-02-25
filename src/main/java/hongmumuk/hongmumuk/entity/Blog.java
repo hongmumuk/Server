@@ -20,8 +20,18 @@ public class Blog {
     private String title;
     private String subTitle;
     private String url;
+    private String postDate;
+    private String bloggerName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Restaurant restaurant;
 
+    public Blog(String title, String subTitle, String url, String postDate, String bloggerName, Restaurant restaurant) {
+        this.title = title;
+        this.subTitle = subTitle;
+        this.url = url;
+        this.postDate = postDate;
+        this.bloggerName = bloggerName;
+        this.restaurant = restaurant;
+    }
 }

@@ -5,10 +5,7 @@ import hongmumuk.hongmumuk.common.response.status.ErrorStatus;
 import hongmumuk.hongmumuk.common.response.status.SuccessStatus;
 import hongmumuk.hongmumuk.dto.*;
 import hongmumuk.hongmumuk.entity.*;
-import hongmumuk.hongmumuk.repository.EmailCodeRepository;
-import hongmumuk.hongmumuk.repository.LikedRestaurantRepository;
-import hongmumuk.hongmumuk.repository.RefreshTokenRepository;
-import hongmumuk.hongmumuk.repository.UserRepository;
+import hongmumuk.hongmumuk.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -24,6 +21,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -41,6 +39,7 @@ public class UserService {
     private final JavaMailSender javaMailSender;
     private static final String senderEmail = "wjsalswp303@gmail.com";
     private static String randNum;
+    private final RestaurantRepository restaurantRepository;
 
     // 랜덤 인증번호 생성
     public static void createNumber() {
@@ -220,15 +219,15 @@ public class UserService {
             return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.LIKED_NOT_EXISTS));
         }
 
-        List<RestaurantPageDto> restaurantPageDtos = null;
+        List<Restaurant> restaurants = new java.util.ArrayList<>(List.of());
 
         for (LikedRestaurant likedRestaurant : likedRestaurants) {
-            Restaurant restaurant = likedRestaurant.getRestaurant();
-
-            RestaurantPageDto restaurantPageDto = RestaurantPageDto.from(restaurant);
-
-            restaurantPageDtos.add(restaurantPageDto);
+                restaurants.add(restaurantRepository.findById(likedRestaurant.getRestaurant().getId()).orElse(null));
         }
+
+        List<RestaurantPageDto> restaurantPageDtos = restaurants.stream()
+                .map(RestaurantPageDto::from)
+                .collect(Collectors.toList());
 
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK, restaurantPageDtos));
     }

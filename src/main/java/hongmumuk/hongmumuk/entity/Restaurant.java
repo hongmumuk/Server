@@ -20,8 +20,6 @@ public class Restaurant {
     private String name;
     private String address;
     private Integer likes;
-    private Integer views;
-    private String menuUrl;
     private Double longitude;
     private Double latitude;
     @Enumerated(EnumType.STRING)
@@ -29,4 +27,7 @@ public class Restaurant {
     private Double front;
     private Double back;
 
+    public void setLikes(int i) {
+        this.likes = i;
+    }
 }
