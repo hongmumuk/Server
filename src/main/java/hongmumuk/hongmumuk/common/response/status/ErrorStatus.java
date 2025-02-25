@@ -17,7 +17,9 @@ public enum ErrorStatus {
     WRONG_TOKEN_ERROR(HttpStatus.BAD_REQUEST, "BAD400_5", "잘못된 리프레쉬 토큰입니다."),
     LIKED_NOT_EXISTS(HttpStatus.BAD_REQUEST, "BAD400_6", "좋아요한 식당이 없습니다."),
     INCORRECT_PASSWORD(HttpStatus.BAD_REQUEST, "BAD400_7", "기존 비밀번호가 틀렸습니다."),
-    UNAUTHORIZED_ERROR(HttpStatus.UNAUTHORIZED, "COMMON401", "해당 리소스에 유효한 인증 자격 증명이 필요합니다.");
+    UNAUTHORIZED_ERROR(HttpStatus.UNAUTHORIZED, "COMMON401", "해당 리소스에 유효한 인증 자격 증명이 필요합니다."),
+    RESTAURANT_NOT_FOUND(HttpStatus.BAD_REQUEST, "BAD400_8", "해당 식당이 없습니다.")
+    ;
 
     private final HttpStatus status;
     private final String code;

@@ -11,7 +11,5 @@ import java.util.Optional;
 public interface LikedRestaurantRepository extends JpaRepository<LikedRestaurant, Long> {
     List<LikedRestaurant> findByUser(User user);
 
-    Optional<LikedRestaurant> findByUserAndId(User user, Long id);
-
-    LikedRestaurant findByUserAndRestaurant(User user, Restaurant restaurant);
+    Optional<LikedRestaurant> findByUserAndRestaurant(User user, Restaurant restaurant);
 }

@@ -39,6 +39,9 @@ public class RestaurantService {
         User user = userId.get();
 
         Optional<Restaurant> restaurantId = restaurantRepository.findById(likedRestaurantId);
+        if(restaurantId.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.RESTAURANT_NOT_FOUND));
+        }
         Restaurant restaurant = restaurantId.get();
 
         LikedRestaurant likedRestaurant = LikedRestaurant.builder()
@@ -63,11 +66,20 @@ public class RestaurantService {
             return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
         }
         User user = userId.get();
+
         Optional<Restaurant> restaurantId = restaurantRepository.findById(dislikedRestaurantId);
+        if(restaurantId.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.RESTAURANT_NOT_FOUND));
+        }
         Restaurant restaurant = restaurantId.get();
 
+        Optional<LikedRestaurant> likedRestaurant = likedRestaurantRepository.findByUserAndRestaurant(user, restaurant);
+        if (likedRestaurant.isEmpty()) {
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.LIKED_NOT_EXISTS));
+        }
         restaurant.setLikes(restaurant.getLikes()-1);
-        likedRestaurantRepository.delete(likedRestaurantRepository.findByUserAndRestaurant(user, restaurant));
+
+        likedRestaurantRepository.delete(likedRestaurant.get());
 
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
     }
@@ -76,6 +88,10 @@ public class RestaurantService {
     public ResponseEntity<?> findRestaurant(int restaurantId) {
         // 식당 정보 가져오기 -> name, likes, category, longitude, latitude, front, back
         Optional<Restaurant> restaurant = restaurantRepository.findById((long) restaurantId);
+        if(restaurant.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.RESTAURANT_NOT_FOUND));
+        }
+
         String name = restaurant.get().getName();
         Integer likes = restaurant.get().getLikes();
         String category = String.valueOf(restaurant.get().getCategory());
@@ -83,7 +99,7 @@ public class RestaurantService {
         Double latitude = restaurant.get().getLatitude();
         Double front = restaurant.get().getFront();
         Double back = restaurant.get().getBack();
-        boolean hasLiked = false;
+        boolean hasLiked;
 
         // 사용자가 좋아요 했는지 가져오기
         String userEmail = JwtUtil.getCurrentUserEmail();
@@ -92,7 +108,8 @@ public class RestaurantService {
             return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
         }
         User user = userId.get();
-        Optional<LikedRestaurant> likedRestaurant = likedRestaurantRepository.findByUserAndId(user,((long) restaurantId));
+        Optional<LikedRestaurant> likedRestaurant = likedRestaurantRepository.findByUserAndRestaurant(user,restaurant.get());
+
         if(likedRestaurant.isEmpty()){
             hasLiked = false;
         }
