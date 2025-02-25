@@ -1,5 +1,6 @@
 package hongmumuk.hongmumuk.dto;
 
+import hongmumuk.hongmumuk.entity.LikedRestaurant;
 import hongmumuk.hongmumuk.entity.Restaurant;
 import lombok.Builder;
 import lombok.Data;

@@ -5,7 +5,10 @@ import hongmumuk.hongmumuk.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface LikedRestaurantRepository extends JpaRepository<LikedRestaurant, Long> {
     List<LikedRestaurant> findByUser(User user);
+
+    Optional<LikedRestaurant> findByUserAndId(User user, Long id);
 }

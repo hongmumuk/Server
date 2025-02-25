@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 @Builder
+// pagenation없이 모든 식당 정보 주기 (검색기능)
 public class SearchRestaurantDto {
     public Long id;
     public String name;

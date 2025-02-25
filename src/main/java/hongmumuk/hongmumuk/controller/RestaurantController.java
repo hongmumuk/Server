@@ -6,10 +6,7 @@ import hongmumuk.hongmumuk.service.RestaurantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/restaurant")
@@ -30,5 +27,10 @@ public class RestaurantController {
     @PostMapping("/dislike")
     public ResponseEntity<?> dislike(@RequestBody LikeAndDislikeDto likeAndDislikeDto) {
         return restaurantService.dislikeRestaurant(likeAndDislikeDto);
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<?> findRestaurant(@RequestParam int restaurantId) {
+        return restaurantService.findRestaurant(restaurantId);
     }
 }
