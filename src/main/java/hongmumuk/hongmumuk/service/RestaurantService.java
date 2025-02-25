@@ -63,17 +63,11 @@ public class RestaurantService {
             return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
         }
         User user = userId.get();
-
         Optional<Restaurant> restaurantId = restaurantRepository.findById(dislikedRestaurantId);
         Restaurant restaurant = restaurantId.get();
 
-        LikedRestaurant dislikedRestaurant = LikedRestaurant.builder()
-                .user(user)
-                .restaurant(restaurant)
-                .build();
-
         restaurant.setLikes(restaurant.getLikes()-1);
-        likedRestaurantRepository.delete(dislikedRestaurant);
+        likedRestaurantRepository.delete(likedRestaurantRepository.findByUserAndRestaurant(user, restaurant));
 
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
     }

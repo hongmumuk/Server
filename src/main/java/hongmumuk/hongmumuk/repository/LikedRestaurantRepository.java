@@ -1,6 +1,7 @@
 package hongmumuk.hongmumuk.repository;
 
 import hongmumuk.hongmumuk.entity.LikedRestaurant;
+import hongmumuk.hongmumuk.entity.Restaurant;
 import hongmumuk.hongmumuk.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,4 +12,6 @@ public interface LikedRestaurantRepository extends JpaRepository<LikedRestaurant
     List<LikedRestaurant> findByUser(User user);
 
     Optional<LikedRestaurant> findByUserAndId(User user, Long id);
+
+    LikedRestaurant findByUserAndRestaurant(User user, Restaurant restaurant);
 }
