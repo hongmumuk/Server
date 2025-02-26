@@ -89,6 +89,13 @@ public class UserService {
 
     @Transactional
     public ResponseEntity<?> joinService(SignInDto signInDto) {
+
+        // 회원이 이미 존재할 때
+        Optional<User> userOptional = userRepository.findByEmail(signInDto.getEmail());
+        if(userOptional.isPresent()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.USER_EXISTS));
+        }
+
         User user = User.builder()
                 .email(signInDto.getEmail())
                 .password(passwordEncoder.encode(signInDto.getPassword()))
