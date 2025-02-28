@@ -32,11 +32,20 @@ public class CategoryService {
         String category = categoryDto.getCategory();
         Integer page = categoryDto.getPage();
         String sort = categoryDto.getSort();
+        List<Restaurant> restaurants;
+        Pageable pageable;
+        Page<RestaurantPageDto> restaurantPageDto;
+
 
         // page가 -1이면 -> 검색 기능
         // pagination 없이 모든 식당 정보 주기
         if (page == -1) {
-            List<Restaurant> restaurants = restaurantRepository.findAll(Sort.by(Sort.Direction.DESC, sort));
+            if (sort.equals("likes")) {
+                restaurants = restaurantRepository.findAll(Sort.by(Sort.Direction.DESC, sort));
+            }
+            else {
+                restaurants = restaurantRepository.findAll(Sort.by(Sort.Direction.ASC, sort));
+            }
             List<SearchRestaurantDto> searchRestaurantDto = restaurants.stream()
                     .map(SearchRestaurantDto::from)
                     .collect(Collectors.toList());
@@ -44,8 +53,12 @@ public class CategoryService {
         }
         // page가 -1이 아니면 -> 카테고리 조회 기능
         else {
-            Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, sort));
-            Page<RestaurantPageDto> restaurantPageDto;
+            if (sort.equals("likes")) {
+                pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, sort));
+            }
+            else {
+                pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.ASC, sort));
+            }
 
             // ALL이면 -> 전체 조회
             // 모든 식당 조회해서 pagination 적용해서 넘겨주기
