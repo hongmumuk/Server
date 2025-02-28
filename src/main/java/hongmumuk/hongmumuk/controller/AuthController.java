@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +37,7 @@ public class AuthController {
 
 
     @PostMapping("/send")
-    public ResponseEntity<?> send(@RequestBody EmailDto emailDto) throws IOException {
+    public ResponseEntity<?> send(@RequestBody EmailDto emailDto) throws IOException, MessagingException {
         return userService.sendService(emailDto);
     }
 

@@ -6,10 +6,13 @@ import hongmumuk.hongmumuk.common.response.status.SuccessStatus;
 import hongmumuk.hongmumuk.dto.*;
 import hongmumuk.hongmumuk.entity.*;
 import hongmumuk.hongmumuk.repository.*;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -101,15 +104,17 @@ public class UserService {
                 .password(passwordEncoder.encode(signInDto.getPassword()))
                 .build();
         userRepository.save(user);
+
+        user.setNickName("홍무묵" + user.getId());
+
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
     }
 
     @Transactional
-    public ResponseEntity<?> sendService(EmailDto emailDto) throws IOException {
-        if(userRepository.existsByEmail(emailDto.getEmail())) {
+    public ResponseEntity<?> sendService(EmailDto emailDto) throws MessagingException, MessagingException {
+        if (userRepository.existsByEmail(emailDto.getEmail())) {
             return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.USER_EXISTS));
-        }
-        else {
+        } else {
             createNumber();
 
             EmailCode emailCode = EmailCode.builder()
@@ -121,22 +126,25 @@ public class UserService {
 
             emailCodeRepository.save(emailCode);
 
-            SimpleMailMessage message = new SimpleMailMessage();
+            //  HTML 이메일 전송을 위한 MimeMessage 사용
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
 
-            message.setFrom(senderEmail);
-            message.setTo(emailDto.getEmail());
-            message.setSubject("홍무묵 이메일 인증");
-            String body = "";
-            body += "요청하신 인증 번호입니다.";
-            body += " " + randNum + " ";
-            body += " " + "해당 인증번호를 입력해주세요.";
-            message.setText(body);
+            helper.setFrom(senderEmail);
+            helper.setTo(emailDto.getEmail());
+            helper.setSubject("[홍무묵] 인증번호 안내");
+
+            // 인증번호를 볼드 처리한 HTML 내용
+            String body = "<p>본 메일은 <strong>[홍무묵]</strong>의 이메일 인증입니다.<br><strong style='font-size:18px; color:#142FB8;'>" + randNum + "</strong>" + " 를 입력하여 본인확인을 해주시기 바랍니다.</p>";
+
+            helper.setText(body, true); // true를 설정해야 HTML 적용됨
 
             javaMailSender.send(message);
         }
 
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
     }
+
 
     @Transactional
     public ResponseEntity<?> verifyService(EmailDto.VerifyDto verifyDto) throws IOException {
