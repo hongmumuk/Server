@@ -95,7 +95,7 @@ public class SchedulerService {
         for (Restaurant restaurant : restaurantList) {
             String text = "홍대" + restaurant.getName();
             String query = URLEncoder.encode(text, StandardCharsets.UTF_8);
-            String apiURL = "https://openapi.naver.com/v1/search/blog?query=" + query;
+            String apiURL = "https://openapi.naver.com/v1/search/blog?query=" + query + "&display=20";
 
             Map<String, String> requestHeaders = new HashMap<>();
             requestHeaders.put("X-Naver-Client-Id", clientId);
