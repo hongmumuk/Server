@@ -4,9 +4,6 @@ import hongmumuk.hongmumuk.dto.EmailDto;
 import hongmumuk.hongmumuk.dto.SignInDto;
 import hongmumuk.hongmumuk.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,13 +34,18 @@ public class AuthController {
 
 
     @PostMapping("/send")
-    public ResponseEntity<?> send(@RequestBody EmailDto emailDto) throws IOException, MessagingException {
+    public ResponseEntity<?> send(@RequestBody EmailDto emailDto) throws MessagingException {
         return userService.sendService(emailDto);
     }
 
     @PostMapping("/verify")
     public ResponseEntity<?> verify(@RequestBody EmailDto.VerifyDto verifyDto) throws IOException {
         return userService.verifyService(verifyDto);
+    }
+
+    @PatchMapping("/password")
+    public ResponseEntity<?> newPassword(@RequestBody SignInDto.NewPasswordDto newPasswordDto){
+        return userService.modifyPassword(newPasswordDto.getEmail(), newPasswordDto.getNewPassword());
     }
 
     @Operation(
@@ -56,8 +58,8 @@ public class AuthController {
             //security = @SecurityRequirement(name = "access-token")
     )
     @GetMapping("/token")
-    public ResponseEntity<?> reissue(@RequestParam(value = "accessToken") String accessToken,
-                                     @RequestParam(value = "refreshToken") String refreshToken){
+    public ResponseEntity<?> reissue(@RequestHeader(value = "Authorization") String accessToken,
+                                     @RequestHeader(value = "refreshToken") String refreshToken){
         //Bearer 접두사 삭제
         accessToken = accessToken.substring(7);
 

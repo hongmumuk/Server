@@ -112,10 +112,15 @@ public class UserService {
 
     @Transactional
     public ResponseEntity<?> sendService(EmailDto emailDto) throws MessagingException, MessagingException {
-        if (userRepository.existsByEmail(emailDto.getEmail())) {
-            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.USER_EXISTS));
-        } else {
-            createNumber();
+
+        createNumber(); // 랜덤 번호 생성.
+
+        if (!emailDto.isJoin()) {
+            // join == false 일 때 비밀번호 찾기 서비스
+
+            if(!userRepository.existsByEmail(emailDto.getEmail())){
+                return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+            }
 
             EmailCode emailCode = EmailCode.builder()
                     .email(emailDto.getEmail())
@@ -135,7 +140,38 @@ public class UserService {
             helper.setSubject("[홍무묵] 인증번호 안내");
 
             // 인증번호를 볼드 처리한 HTML 내용
-            String body = "<p>본 메일은 <strong>[홍무묵]</strong>의 이메일 인증입니다.<br><strong style='font-size:18px; color:#142FB8;'>" + randNum + "</strong>" + " 를 입력하여 본인확인을 해주시기 바랍니다.</p>";
+            String body = "<p>본 메일은 <strong>[홍무묵]</strong>의 비밀번호 찾기를 위한 이메일 인증입니다.<br><strong style='font-size:18px; color:#142FB8;'>" + randNum + "</strong>" + " 를 입력하여 본인확인을 해주시기 바랍니다.</p>";
+
+            helper.setText(body, true); // true를 설정해야 HTML 적용됨
+
+            javaMailSender.send(message);
+        }
+        else {
+
+            // 회원가입 시 이미 존재하는 회원일 때
+            if(userRepository.existsByEmail(emailDto.getEmail())){
+                return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.USER_EXISTS));
+            }
+
+            EmailCode emailCode = EmailCode.builder()
+                    .email(emailDto.getEmail())
+                    .code(randNum)
+                    .createdAt(LocalDateTime.now())
+                    .expirationTime(LocalDateTime.now().plusMinutes(5))
+                    .build();
+
+            emailCodeRepository.save(emailCode);
+
+            //  HTML 이메일 전송을 위한 MimeMessage 사용
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+
+            helper.setFrom(senderEmail);
+            helper.setTo(emailDto.getEmail());
+            helper.setSubject("[홍무묵] 인증번호 안내");
+
+            // 인증번호를 볼드 처리한 HTML 내용
+            String body = "<p>본 메일은 <strong>[홍무묵]</strong>의 회원가입을 위한 이메일 인증입니다.<br><strong style='font-size:18px; color:#142FB8;'>" + randNum + "</strong>" + " 를 입력하여 본인확인을 해주시기 바랍니다.</p>";
 
             helper.setText(body, true); // true를 설정해야 HTML 적용됨
 
