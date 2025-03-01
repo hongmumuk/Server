@@ -8,6 +8,7 @@ import lombok.Data;
 public class EmailDto {
 
     private String email;
+    private boolean join;
 
     @Builder
     @Data
