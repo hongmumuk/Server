@@ -26,4 +26,16 @@ public class EmailCode {
     private String code;
     private LocalDateTime expirationTime;
     private LocalDateTime createdAt;
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public void setExpirationTime(LocalDateTime expirationTime) {
+        this.expirationTime = expirationTime;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

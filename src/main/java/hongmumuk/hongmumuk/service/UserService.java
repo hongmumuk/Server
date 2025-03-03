@@ -124,17 +124,25 @@ public class UserService {
 
             Optional<EmailCode> emailCodeOptional = emailCodeRepository.findByEmail(emailDto.getEmail());
 
-            // 이미 해당 email에 대한 인증번호가 전송된 상태일 때
-            emailCodeOptional.ifPresent(emailCodeRepository::delete);
 
-            EmailCode emailCode = EmailCode.builder()
-                    .email(emailDto.getEmail())
-                    .code(randNum)
-                    .createdAt(LocalDateTime.now())
-                    .expirationTime(LocalDateTime.now().plusMinutes(5))
-                    .build();
+            // 해당 이메일로 보낸 인증번호가 없을 때
+            if(emailCodeOptional.isEmpty()){
+                EmailCode emailCode = EmailCode.builder()
+                        .email(emailDto.getEmail())
+                        .code(randNum)
+                        .createdAt(LocalDateTime.now())
+                        .expirationTime(LocalDateTime.now().plusMinutes(5))
+                        .build();
 
-            emailCodeRepository.save(emailCode);
+                emailCodeRepository.save(emailCode);
+            }
+            else{ // 있을 때
+                EmailCode emailCode = emailCodeOptional.get();
+                emailCode.setCode(randNum);
+                emailCode.setCreatedAt(LocalDateTime.now());
+                emailCode.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+                emailCodeRepository.save(emailCode);
+            }
 
             //  HTML 이메일 전송을 위한 MimeMessage 사용
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -160,17 +168,24 @@ public class UserService {
 
             Optional<EmailCode> emailCodeOptional = emailCodeRepository.findByEmail(emailDto.getEmail());
 
-            // 이미 해당 email에 대한 인증번호가 전송된 상태일 때
-            emailCodeOptional.ifPresent(emailCodeRepository::delete);
+            // 해당 이메일로 보낸 인증번호가 없을 때
+            if(emailCodeOptional.isEmpty()){
+                EmailCode emailCode = EmailCode.builder()
+                        .email(emailDto.getEmail())
+                        .code(randNum)
+                        .createdAt(LocalDateTime.now())
+                        .expirationTime(LocalDateTime.now().plusMinutes(5))
+                        .build();
 
-            EmailCode emailCode = EmailCode.builder()
-                    .email(emailDto.getEmail())
-                    .code(randNum)
-                    .createdAt(LocalDateTime.now())
-                    .expirationTime(LocalDateTime.now().plusMinutes(5))
-                    .build();
-
-            emailCodeRepository.save(emailCode);
+                emailCodeRepository.save(emailCode);
+            }
+            else{ // 있을 때
+                EmailCode emailCode = emailCodeOptional.get();
+                emailCode.setCode(randNum);
+                emailCode.setCreatedAt(LocalDateTime.now());
+                emailCode.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+                emailCodeRepository.save(emailCode);
+            }
 
             //  HTML 이메일 전송을 위한 MimeMessage 사용
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -209,6 +224,7 @@ public class UserService {
 
         // 인증 성공
         if(emailCode.get().getCode().equals(verifyDto.getCode())){
+            emailCodeRepository.delete(emailCode.get());
             return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
         }
         else{ // 인증 실패
