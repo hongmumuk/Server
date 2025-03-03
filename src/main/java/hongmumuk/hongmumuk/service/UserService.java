@@ -122,6 +122,11 @@ public class UserService {
                 return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
             }
 
+            Optional<EmailCode> emailCodeOptional = emailCodeRepository.findByEmail(emailDto.getEmail());
+
+            // 이미 해당 email에 대한 인증번호가 전송된 상태일 때
+            emailCodeOptional.ifPresent(emailCodeRepository::delete);
+
             EmailCode emailCode = EmailCode.builder()
                     .email(emailDto.getEmail())
                     .code(randNum)
@@ -152,6 +157,11 @@ public class UserService {
             if(userRepository.existsByEmail(emailDto.getEmail())){
                 return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.USER_EXISTS));
             }
+
+            Optional<EmailCode> emailCodeOptional = emailCodeRepository.findByEmail(emailDto.getEmail());
+
+            // 이미 해당 email에 대한 인증번호가 전송된 상태일 때
+            emailCodeOptional.ifPresent(emailCodeRepository::delete);
 
             EmailCode emailCode = EmailCode.builder()
                     .email(emailDto.getEmail())
