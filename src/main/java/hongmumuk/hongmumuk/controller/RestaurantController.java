@@ -29,7 +29,7 @@ public class RestaurantController {
         return restaurantService.dislikeRestaurant(likeAndDislikeDto);
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<?> findRestaurant(@RequestParam int restaurantId) {
         return restaurantService.findRestaurant(restaurantId);
     }
