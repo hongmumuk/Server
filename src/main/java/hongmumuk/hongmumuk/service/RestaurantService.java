@@ -100,21 +100,24 @@ public class RestaurantService {
         Double front = restaurant.get().getFront();
         Double back = restaurant.get().getBack();
         boolean hasLiked;
+        User user;
 
         // 사용자가 좋아요 했는지 가져오기
-        String userEmail = JwtUtil.getCurrentUserEmail();
-        Optional<User> userId = userRepository.findByEmail(userEmail);
-        if(userId.isEmpty()){
-            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
-        }
-        User user = userId.get();
-        Optional<LikedRestaurant> likedRestaurant = likedRestaurantRepository.findByUserAndRestaurant(user,restaurant.get());
-
-        if(likedRestaurant.isEmpty()){
+        if (JwtUtil.getCurrentUserEmail().isEmpty()) {
             hasLiked = false;
         }
         else {
-            hasLiked = true;
+            String userEmail = JwtUtil.getCurrentUserEmail();
+            Optional<User> userId = userRepository.findByEmail(userEmail);
+            user = userId.get();
+            Optional<LikedRestaurant> likedRestaurant = likedRestaurantRepository.findByUserAndRestaurant(user,restaurant.get());
+
+            if(likedRestaurant.isEmpty()){
+                hasLiked = false;
+            }
+            else {
+                hasLiked = true;
+            }
         }
 
         // 블로그 정보 가져오기
