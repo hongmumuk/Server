@@ -30,7 +30,7 @@ public class RestaurantController {
     }
 
     @GetMapping("")
-    public ResponseEntity<?> findRestaurant(@RequestParam int restaurantId) {
-        return restaurantService.findRestaurant(restaurantId);
+    public ResponseEntity<?> findRestaurant(@RequestParam int restaurantId, boolean isUser) {
+        return restaurantService.findRestaurant(restaurantId, isUser);
     }
 }

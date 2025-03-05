@@ -85,7 +85,7 @@ public class RestaurantService {
     }
 
     @Transactional
-    public ResponseEntity<?> findRestaurant(int restaurantId) {
+    public ResponseEntity<?> findRestaurant(int restaurantId, boolean isUser) {
         // 식당 정보 가져오기 -> name, likes, category, longitude, latitude, front, back
         Optional<Restaurant> restaurant = restaurantRepository.findById((long) restaurantId);
         if(restaurant.isEmpty()){
@@ -100,16 +100,11 @@ public class RestaurantService {
         Double front = restaurant.get().getFront();
         Double back = restaurant.get().getBack();
         boolean hasLiked;
-        User user;
 
-        // 사용자가 좋아요 했는지 가져오기
-        if (JwtUtil.getCurrentUserEmail().isEmpty()) {
-            hasLiked = false;
-        }
-        else {
+        if (isUser) {
             String userEmail = JwtUtil.getCurrentUserEmail();
             Optional<User> userId = userRepository.findByEmail(userEmail);
-            user = userId.get();
+            User user = userId.get();
             Optional<LikedRestaurant> likedRestaurant = likedRestaurantRepository.findByUserAndRestaurant(user,restaurant.get());
 
             if(likedRestaurant.isEmpty()){
@@ -119,6 +114,11 @@ public class RestaurantService {
                 hasLiked = true;
             }
         }
+        else {
+            hasLiked = false;
+
+        }
+
 
         // 블로그 정보 가져오기
         List<Blog> blog = blogRepository.findAllByRestaurant(restaurant);
