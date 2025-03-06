@@ -93,6 +93,7 @@ public class RestaurantService {
         }
 
         String name = restaurant.get().getName();
+        String address = restaurant.get().getAddress();
         Integer likes = restaurant.get().getLikes();
         String category = String.valueOf(restaurant.get().getCategory());
         Double longitude = restaurant.get().getLongitude();
@@ -125,6 +126,7 @@ public class RestaurantService {
 
         RestaurantDto restaurantDto = RestaurantDto.builder()
                 .id(String.valueOf(restaurantId))
+                .address(address)
                 .name(name)
                 .likes(likes)
                 .category(category)

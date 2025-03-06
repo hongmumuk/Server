@@ -11,6 +11,7 @@ import java.util.List;
 public class RestaurantDto {
     private String id;
     private String name;
+    private String address;
     private Integer likes;
     private String category;
     private Double longitude;
