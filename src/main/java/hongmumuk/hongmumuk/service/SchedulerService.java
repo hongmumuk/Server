@@ -82,7 +82,7 @@ public class SchedulerService {
     }
 
     // 매달 1일 00:00에 진행 "0 0 0 1 * *"
-    @Scheduled(cron = "0 20 15 * * *", zone = "Asia/Seoul" )
+    @Scheduled(cron = "0 25 15 * * *", zone = "Asia/Seoul" )
     @Transactional
     public void updateAll() {
         // 모든 데이터 지우고 시작
@@ -95,7 +95,7 @@ public class SchedulerService {
         for (Restaurant restaurant : restaurantList) {
             String text = "홍대" + restaurant.getName();
             String query = URLEncoder.encode(text, StandardCharsets.UTF_8);
-            String apiURL = "https://openapi.naver.com/v1/search/blog?query=" + query + "&display=20";
+            String apiURL = "https://openapi.naver.com/v1/search/blog?query=" + query;
 
             Map<String, String> requestHeaders = new HashMap<>();
             requestHeaders.put("X-Naver-Client-Id", clientId);
