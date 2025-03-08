@@ -44,15 +44,19 @@ public class RestaurantService {
         }
         Restaurant restaurant = restaurantId.get();
 
-        LikedRestaurant likedRestaurant = LikedRestaurant.builder()
-                .user(user)
-                .restaurant(restaurant)
-                .build();
+        if (likedRestaurantRepository.existsByUserAndRestaurant(user, restaurant)) {
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.BAD_REQUEST));
+        }
+        else {
+            LikedRestaurant likedRestaurant = LikedRestaurant.builder()
+                    .user(user)
+                    .restaurant(restaurant)
+                    .build();
+            restaurant.setLikes(restaurant.getLikes()+1);
+            likedRestaurantRepository.save(likedRestaurant);
 
-        restaurant.setLikes(restaurant.getLikes()+1);
-        likedRestaurantRepository.save(likedRestaurant);
-
-        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+            return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+        }
     }
 
     // 식당 좋아요 삭제 기능
@@ -77,11 +81,15 @@ public class RestaurantService {
         if (likedRestaurant.isEmpty()) {
             return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.LIKED_NOT_EXISTS));
         }
-        restaurant.setLikes(restaurant.getLikes()-1);
 
-        likedRestaurantRepository.delete(likedRestaurant.get());
-
-        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+        if (likedRestaurantRepository.existsByUserAndRestaurant(user, restaurant)) {
+            restaurant.setLikes(restaurant.getLikes()-1);
+            likedRestaurantRepository.delete(likedRestaurant.get());
+            return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+        }
+        else {
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.BAD_REQUEST));
+        }
     }
 
     @Transactional

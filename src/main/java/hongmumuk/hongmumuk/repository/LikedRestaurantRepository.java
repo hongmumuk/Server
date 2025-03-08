@@ -12,4 +12,6 @@ public interface LikedRestaurantRepository extends JpaRepository<LikedRestaurant
     List<LikedRestaurant> findByUser(User user);
 
     Optional<LikedRestaurant> findByUserAndRestaurant(User user, Restaurant restaurant);
+
+    boolean existsByUserAndRestaurant(User user, Restaurant restaurant);
 }
