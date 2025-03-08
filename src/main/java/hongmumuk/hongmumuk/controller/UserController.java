@@ -1,6 +1,7 @@
 package hongmumuk.hongmumuk.controller;
 
 import hongmumuk.hongmumuk.common.JwtUtil;
+import hongmumuk.hongmumuk.dto.ProfileDto;
 import hongmumuk.hongmumuk.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,19 +27,19 @@ public class UserController {
     }
 
     @PatchMapping("/password")
-    public ResponseEntity<?> newPassword(@RequestBody String newPassword){
+    public ResponseEntity<?> newPassword(@RequestBody ProfileDto.passwordDto newPassword){
         String email = JwtUtil.getCurrentUserEmail();
-        return userService.modifyPassword(email, newPassword);
+        return userService.modifyPassword(email, newPassword.getPassword());
     }
 
     @PostMapping("/check")
-    public ResponseEntity<?> checkPassword(@RequestBody String password){
+    public ResponseEntity<?> checkPassword(@RequestBody ProfileDto.passwordDto password){
         String email = JwtUtil.getCurrentUserEmail();
         return userService.checkPassword(email, password);
     }
 
-    @PatchMapping("/nickname")
-    public ResponseEntity<?> nickName(@RequestBody String nickname){
+    @PatchMapping("/nickname/{nickname}")
+    public ResponseEntity<?> nickName(@PathVariable String nickname){
         String email = JwtUtil.getCurrentUserEmail();
         return userService.modifyNickname(email, nickname);
     }

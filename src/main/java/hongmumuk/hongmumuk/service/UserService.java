@@ -326,7 +326,7 @@ public class UserService {
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
     }
 
-    public ResponseEntity<?> checkPassword(String email, String password){
+    public ResponseEntity<?> checkPassword(String email, ProfileDto.passwordDto password){
         Optional<User> userOptional = userRepository.findByEmail(email);
 
         if(userOptional.isEmpty()){
@@ -335,7 +335,7 @@ public class UserService {
 
         User user = userOptional.get();
 
-        if(passwordEncoder.matches(password, user.getPassword())){
+        if(passwordEncoder.matches(password.getPassword(), user.getPassword())){
             return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
         }
         else{
