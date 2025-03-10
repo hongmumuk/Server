@@ -9,6 +9,7 @@ import hongmumuk.hongmumuk.repository.*;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -370,7 +371,17 @@ public class UserService {
 
         User user = userOptional.get();
 
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findById(user.getId());
+        refreshToken.ifPresent(refreshTokenRepository::delete);
+
         List<LikedRestaurant> likedRestaurants = likedRestaurantRepository.findByUser(user);
+
+        List<Restaurant> restaurants = likedRestaurants.stream().map(LikedRestaurant::getRestaurant).toList();
+
+        // 각 레스토랑 좋아요 -1
+        for (Restaurant restaurant : restaurants) {
+            restaurant.setLikes(restaurant.getLikes()-1);
+        }
 
         likedRestaurantRepository.deleteAll(likedRestaurants);
 
