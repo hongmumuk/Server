@@ -19,6 +19,8 @@ public class RestaurantDto {
     private Boolean hasLiked;
     private Double front;
     private Double back;
+    private String naverLink;
+    private String kakaoLink;
     // 블로그 리스트
     private List<Blog> blogs;
 

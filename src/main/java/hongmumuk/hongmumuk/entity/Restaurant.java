@@ -26,6 +26,9 @@ public class Restaurant {
     private Category category;
     private Double front;
     private Double back;
+    private String naverLink;
+    private String kakaoLink;
+
 
     public void setLikes(int i) {
         this.likes = i;

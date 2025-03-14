@@ -108,6 +108,8 @@ public class RestaurantService {
         Double latitude = restaurant.get().getLatitude();
         Double front = restaurant.get().getFront();
         Double back = restaurant.get().getBack();
+        String naverLink = restaurant.get().getNaverLink();
+        String kakaoLink = restaurant.get().getKakaoLink();
         boolean hasLiked;
 
         if (isUser) {
@@ -143,6 +145,8 @@ public class RestaurantService {
                 .hasLiked(hasLiked)
                 .front(front)
                 .back(back)
+                .naverLink(naverLink)
+                .kakaoLink(kakaoLink)
                 .blogs(blog)
                 .build();
 
