@@ -33,4 +33,40 @@ public class Restaurant {
     public void setLikes(int i) {
         this.likes = i;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setLikes(Integer likes) {
+        this.likes = likes;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setFront(Double front) {
+        this.front = front;
+    }
+
+    public void setBack(Double back) {
+        this.back = back;
+    }
+
+    public void setNaverLink(String naverLink) {
+        this.naverLink = naverLink;
+    }
+
+    public void setKakaoLink(String kakaoLink) {
+        this.kakaoLink = kakaoLink;
+    }
 }
