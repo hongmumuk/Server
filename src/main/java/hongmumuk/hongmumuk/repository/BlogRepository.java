@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface BlogRepository extends JpaRepository<Blog, Long> {
 
     List<Blog> findAllByRestaurant(Optional<Restaurant> restaurant);
+
 }

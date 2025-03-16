@@ -4,13 +4,18 @@ import hongmumuk.hongmumuk.common.response.Apiresponse;
 import hongmumuk.hongmumuk.common.response.status.ErrorStatus;
 import hongmumuk.hongmumuk.common.response.status.SuccessStatus;
 import hongmumuk.hongmumuk.dto.AdminDto;
+import hongmumuk.hongmumuk.entity.Blog;
+import hongmumuk.hongmumuk.entity.LikedRestaurant;
 import hongmumuk.hongmumuk.entity.Restaurant;
+import hongmumuk.hongmumuk.repository.BlogRepository;
+import hongmumuk.hongmumuk.repository.LikedRestaurantRepository;
 import hongmumuk.hongmumuk.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,6 +24,8 @@ import java.util.Optional;
 public class AdminService {
 
     private final RestaurantRepository restaurantRepository;
+    private final LikedRestaurantRepository likedRestaurantRepository;
+    private final BlogRepository blogRepository;
 
     public ResponseEntity<?> crudRestaurant(AdminDto.modifyRestaurantDto modifyRestaurantDto){
 
@@ -48,6 +55,14 @@ public class AdminService {
         if(restaurantOptional.isEmpty()){
             return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.RESTAURANT_NOT_FOUND));
         }
+
+        List<LikedRestaurant> likedRestaurantList = likedRestaurantRepository.findAllByRestaurant(restaurantOptional.get());
+
+        likedRestaurantRepository.deleteAll(likedRestaurantList);
+
+        List<Blog> blogs = blogRepository.findAllByRestaurant(restaurantOptional);
+
+        blogRepository.deleteAll(blogs);
 
         restaurantRepository.delete(restaurantOptional.get());
 
