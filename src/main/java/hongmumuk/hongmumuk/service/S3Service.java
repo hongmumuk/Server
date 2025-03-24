@@ -7,8 +7,10 @@ import hongmumuk.hongmumuk.dto.S3FileDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +26,23 @@ public class S3Service {
     private String bucketName;
 
     private final AmazonS3 amazonS3Client;
+
+    // 단일 파일 업로드
+    public String uploadFile(MultipartFile multipartFile) {
+
+        String fileName = getUuidFileName(multipartFile.getOriginalFilename());
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(multipartFile.getSize());
+        metadata.setContentType(multipartFile.getContentType());
+
+        try (InputStream inputStream = multipartFile.getInputStream()) {
+            amazonS3Client.putObject(new PutObjectRequest(bucketName, fileName, inputStream, metadata));
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다.");
+        }
+
+        return amazonS3Client.getUrl(bucketName, fileName).toString();
+    }
 
     /**
      * S3로 파일 업로드

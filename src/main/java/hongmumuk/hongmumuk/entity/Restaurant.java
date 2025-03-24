@@ -28,6 +28,8 @@ public class Restaurant {
     private Double back;
     private String naverLink;
     private String kakaoLink;
+    private String fileName;
+    private String imageUrl;
 
 
     public void setLikes(int i) {
@@ -68,5 +70,13 @@ public class Restaurant {
 
     public void setKakaoLink(String kakaoLink) {
         this.kakaoLink = kakaoLink;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

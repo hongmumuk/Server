@@ -13,6 +13,7 @@ public class RestaurantPageDto {
     public Integer likes;
     public Double front;
     public Double back;
+    public String imageUrl;
     public String category;
 
     public static RestaurantPageDto from(Restaurant restaurant) {
@@ -22,6 +23,7 @@ public class RestaurantPageDto {
                 restaurant.getLikes(),
                 restaurant.getFront(),
                 restaurant.getBack(),
+                restaurant.getImageUrl(),
                 restaurant.getCategory().name()
         );
     }

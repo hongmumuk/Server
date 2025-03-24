@@ -13,6 +13,7 @@ public class SearchRestaurantDto {
     public Integer likes;
     public Double front;
     public Double back;
+    public String imageUrl;
     public String category;
 
     public static SearchRestaurantDto from(Restaurant restaurant) {
@@ -22,6 +23,7 @@ public class SearchRestaurantDto {
                 restaurant.getLikes(),
                 restaurant.getFront(),
                 restaurant.getBack(),
+                restaurant.getImageUrl(),
                 restaurant.getCategory().name() // Enum → String 변환
         );
     }
