@@ -9,11 +9,13 @@ import lombok.Data;
 public class RandomDto {
     private Long id;
     private String name;
+    private String imageUrl;
 
     public static RandomDto from(Restaurant restaurant) {
         return new RandomDto(
                 restaurant.getId(),
-                restaurant.getName()
+                restaurant.getName(),
+                restaurant.getImageUrl()
         );
     }
 }
