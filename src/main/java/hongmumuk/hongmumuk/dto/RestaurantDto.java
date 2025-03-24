@@ -21,6 +21,7 @@ public class RestaurantDto {
     private Double back;
     private String naverLink;
     private String kakaoLink;
+    private String imageUrl;
     // 블로그 리스트
     private List<Blog> blogs;
 

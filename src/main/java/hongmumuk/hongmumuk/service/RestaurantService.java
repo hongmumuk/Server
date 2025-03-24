@@ -110,6 +110,7 @@ public class RestaurantService {
         Double back = restaurant.get().getBack();
         String naverLink = restaurant.get().getNaverLink();
         String kakaoLink = restaurant.get().getKakaoLink();
+        String imageUrl = restaurant.get().getImageUrl();
         boolean hasLiked;
 
         if (isUser) {
@@ -147,6 +148,7 @@ public class RestaurantService {
                 .back(back)
                 .naverLink(naverLink)
                 .kakaoLink(kakaoLink)
+                .imageUrl(imageUrl)
                 .blogs(blog)
                 .build();
 

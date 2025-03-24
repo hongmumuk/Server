@@ -14,8 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -26,6 +28,7 @@ public class AdminService {
     private final RestaurantRepository restaurantRepository;
     private final LikedRestaurantRepository likedRestaurantRepository;
     private final BlogRepository blogRepository;
+    private final S3Service s3Service;
 
     public ResponseEntity<?> crudRestaurant(AdminDto.modifyRestaurantDto modifyRestaurantDto){
 
@@ -69,4 +72,40 @@ public class AdminService {
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
     }
 
+    public ResponseEntity<?> addThumbnail(Long rid, MultipartFile multipartFile){
+        Optional<Restaurant> restaurantOptional = restaurantRepository.findById(rid);
+        if(restaurantOptional.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.RESTAURANT_NOT_FOUND));
+        }
+
+        Restaurant restaurant = restaurantOptional.get();
+
+        if(!restaurant.getFileName().isEmpty()){
+            deleteThumbnail(restaurant.getId());
+        }
+
+        String uuidFileName = s3Service.getUuidFileName(multipartFile.getOriginalFilename());
+        String fileUrl = s3Service.uploadFile(multipartFile);
+
+        restaurant.setFileName(uuidFileName);
+        restaurant.setImageUrl(fileUrl);
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+    }
+
+    public ResponseEntity<?> deleteThumbnail(Long rid){
+        Optional<Restaurant> restaurantOptional = restaurantRepository.findById(rid);
+        if(restaurantOptional.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.RESTAURANT_NOT_FOUND));
+        }
+
+        String result = s3Service.deleteFile("", restaurantOptional.get().getFileName());
+
+        if(Objects.equals(result, "success")){
+            return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+        }
+        else{
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.BAD_REQUEST));
+        }
+    }
 }
