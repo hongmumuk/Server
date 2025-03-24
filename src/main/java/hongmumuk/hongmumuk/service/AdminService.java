@@ -80,7 +80,7 @@ public class AdminService {
 
         Restaurant restaurant = restaurantOptional.get();
 
-        if(!restaurant.getFileName().isEmpty()){
+        if(restaurant.getFileName() != null){
             deleteThumbnail(restaurant.getId());
         }
 
