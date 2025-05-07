@@ -30,6 +30,20 @@ public class AdminService {
     private final BlogRepository blogRepository;
     private final S3Service s3Service;
 
+    public ResponseEntity<?> changeResName(AdminDto.modifyResNameDto modifyResNameDto){
+        Optional<Restaurant> restaurantOptional = restaurantRepository.findById(modifyResNameDto.getRid());
+        if(restaurantOptional.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.RESTAURANT_NOT_FOUND));
+        }
+
+        Restaurant restaurant = restaurantOptional.get();
+
+        restaurant.setName(modifyResNameDto.getName());
+        restaurantRepository.save(restaurant);
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+    }
+
     public ResponseEntity<?> crudRestaurant(AdminDto.modifyRestaurantDto modifyRestaurantDto){
 
         Optional<Restaurant> restaurantOptional = restaurantRepository.findById(modifyRestaurantDto.getRid());

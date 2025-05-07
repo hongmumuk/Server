@@ -21,6 +21,12 @@ public class AdminController {
         return adminService.crudRestaurant(modifyRestaurantDto);
     }
 
+    @PatchMapping("/modify/rname")
+    public ResponseEntity<?> changeRestaurantName(@RequestBody AdminDto.modifyResNameDto modifyResNameDto){
+
+        return adminService.changeResName(modifyResNameDto);
+    }
+
     @DeleteMapping("/delete/restaurant")
     public ResponseEntity<?> deleteRestaurant(@RequestBody AdminDto.deleteRestaurantDto deleteRestaurantDto){
         return adminService.deleteRestaurant(deleteRestaurantDto);

@@ -39,4 +39,10 @@ public class AdminDto {
         private Long rid;
     }
 
+    @Data
+    @Builder
+    public static class modifyResNameDto{
+        private Long rid;
+        private String name;
+    }
 }
