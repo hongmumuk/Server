@@ -93,5 +93,6 @@ public class Restaurant {
                 .back(addNewOneDto.getBack())
                 .naverLink(addNewOneDto.getNaverLink())
                 .kakaoLink(addNewOneDto.getKakaoLink())
+                .build();
     }
 }
