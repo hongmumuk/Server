@@ -15,6 +15,11 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    @PostMapping("/add/restaurant")
+    public ResponseEntity<?> addRestaurant(@RequestBody AdminDto.addNewOneDto addNewOneDto){
+        return adminService.addRestaurant(addNewOneDto);
+    }
+
     @PatchMapping("/modify/restaurant")
     public ResponseEntity<?> modifyRestaurant(@RequestBody AdminDto.modifyRestaurantDto modifyRestaurantDto){
 

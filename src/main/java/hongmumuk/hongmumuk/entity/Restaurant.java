@@ -1,5 +1,6 @@
 package hongmumuk.hongmumuk.entity;
 
+import hongmumuk.hongmumuk.dto.AdminDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -78,5 +79,19 @@ public class Restaurant {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    // Dto -> Entity 변환
+    public static Restaurant toEntity(AdminDto.addNewOneDto addNewOneDto){
+        return Restaurant.builder()
+                .name(addNewOneDto.getName())
+                .address(addNewOneDto.getAddress())
+                .longitude(addNewOneDto.getLongitude())
+                .latitude(addNewOneDto.getLatitude())
+                .category(addNewOneDto.getCategory())
+                .front(addNewOneDto.getFront())
+                .back(addNewOneDto.getBack())
+                .naverLink(addNewOneDto.getNaverLink())
+                .kakaoLink(addNewOneDto.getKakaoLink())
     }
 }
