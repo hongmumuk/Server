@@ -93,7 +93,7 @@ public class SchedulerService {
         ObjectMapper objectMapper = new ObjectMapper();
 
         for (Restaurant restaurant : restaurantList) {
-            String text = "홍대" + restaurant.getName();
+            String text = restaurant.getRestaurantName() + "홍대";
             String query = URLEncoder.encode(text, StandardCharsets.UTF_8);
             String apiURL = "https://openapi.naver.com/v1/search/blog?query=" + query;
 

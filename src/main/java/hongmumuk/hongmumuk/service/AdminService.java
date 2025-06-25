@@ -47,8 +47,20 @@ public class AdminService {
 
         Restaurant restaurant = restaurantOptional.get();
 
-        restaurant.setName(modifyResNameDto.getName());
+        restaurant.setRestaurantName(modifyResNameDto.getRestaurantName());
         restaurantRepository.save(restaurant);
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+    }
+
+    public ResponseEntity<?> changeAllResName(AdminDto.modifyAllResNameDto modifyAllResNameDto){
+
+        List<Restaurant> restaurant = restaurantRepository.findAll();
+
+        for (Restaurant r : restaurant) {
+            r.setRestaurantName(modifyAllResNameDto.getRestaurantName());
+            restaurantRepository.save(r);
+        }
 
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
     }
@@ -63,6 +75,7 @@ public class AdminService {
         Restaurant restaurant = restaurantOptional.get();
 
         restaurant.setName(modifyRestaurantDto.getName());
+        restaurant.setRestaurantName(modifyRestaurantDto.getRestaurnatName());
         restaurant.setAddress(modifyRestaurantDto.getAddress());
         restaurant.setFront(modifyRestaurantDto.getFront());
         restaurant.setBack(modifyRestaurantDto.getBack());

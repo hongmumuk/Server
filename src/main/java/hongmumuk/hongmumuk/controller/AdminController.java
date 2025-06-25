@@ -32,6 +32,12 @@ public class AdminController {
         return adminService.changeResName(modifyResNameDto);
     }
 
+    @PatchMapping("/modify/allRname")
+    public ResponseEntity<?> changeAllRestaurantName(@RequestBody AdminDto.modifyAllResNameDto modifyAllResNameDto){
+
+        return adminService.changeAllResName(modifyAllResNameDto);
+    }
+
     @DeleteMapping("/delete/restaurant")
     public ResponseEntity<?> deleteRestaurant(@RequestBody AdminDto.deleteRestaurantDto deleteRestaurantDto){
         return adminService.deleteRestaurant(deleteRestaurantDto);
@@ -40,7 +46,7 @@ public class AdminController {
     @PatchMapping(value = "/add/thumbnail/{rid}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addThumbnail(@RequestPart MultipartFile multipartFile,
                                           @PathVariable Long rid
-                                          ){
+    ){
         return adminService.addThumbnail(rid, multipartFile);
     }
 
