@@ -8,7 +8,11 @@ import hongmumuk.hongmumuk.entity.*;
 import hongmumuk.hongmumuk.repository.*;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -23,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,6 +39,8 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
+    private final ReviewImageRepository reviewImageRepository;
     private final EmailCodeRepository emailCodeRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final LikedRestaurantRepository likedRestaurantRepository;
@@ -300,7 +307,7 @@ public class UserService {
         List<Restaurant> restaurants = new java.util.ArrayList<>(List.of());
 
         for (LikedRestaurant likedRestaurant : likedRestaurants) {
-                restaurants.add(restaurantRepository.findById(likedRestaurant.getRestaurant().getId()).orElse(null));
+            restaurants.add(restaurantRepository.findById(likedRestaurant.getRestaurant().getId()).orElse(null));
         }
 
         List<RestaurantPageDto> restaurantPageDtos = restaurants.stream()
@@ -388,5 +395,58 @@ public class UserService {
         userRepository.delete(user);
 
         return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK));
+    }
+
+    @Transactional
+    public ResponseEntity<?> getMyReviews(String email, int page, String sort){
+
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if(userOptional.isEmpty()){
+            return ResponseEntity.ok(Apiresponse.isFailed(ErrorStatus.UNKNOWN_USER_ERROR));
+        }
+
+        User user = userOptional.get();
+
+        Pageable pageable;
+        if ("new".equals(sort)) { // 최신순
+            pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "createdDate"));
+        } else { // 날짜순
+            pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.ASC, "createdDate"));
+        }
+
+        Page<Review> reviewPage = reviewRepository.findByUser(user, pageable);
+        List<Review> reviews = reviewPage.getContent();
+
+        int reviewCount = reviews.size(); // 유저가 작성한 리뷰 개수
+
+        List<ReviewDto.myReviewDto> myReviewDtoList = new ArrayList<>();
+        for (Review review : reviews) {
+
+            // 리뷰별 이미지 불러오기
+            List<ReviewImage> reviewImages = reviewImageRepository.findAllByReviewId(review.getId());
+            List<String> images = new ArrayList<>();
+            for (ReviewImage reviewImage : reviewImages) {
+                images.add(reviewImage.getImageUrl());
+            }
+
+            ReviewDto.myReviewDto myReviewDto = ReviewDto.myReviewDto.builder()
+                    .reviewId(review.getId())
+                    .rid(review.getRestaurant().getId())
+                    .rname(review.getRestaurant().getName())
+                    .uname(review.getUser().getNickName())
+                    .star(review.getStar())
+                    .content(review.getContent())
+                    .rank(reviewCount)
+                    .category(review.getRestaurant().getCategory().toString())
+                    .createdDate(review.getCreatedDate())
+                    .imageUrls(images)
+                    .build();
+
+            myReviewDtoList.add(myReviewDto);
+        }
+
+
+        return ResponseEntity.ok(Apiresponse.isSuccess(SuccessStatus.OK, myReviewDtoList));
     }
 }

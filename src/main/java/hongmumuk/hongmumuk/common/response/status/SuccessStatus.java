@@ -11,7 +11,9 @@ import static org.springframework.http.HttpStatus.*;
 public enum SuccessStatus {
 
     OK(HttpStatus.OK, "OK200", "요청에 성공하였습니다."),
-    CREATED(HttpStatus.CREATED, "CREATED201", "요청에 성공하였습니다.");
+    CREATED(HttpStatus.CREATED, "CREATED201", "요청에 성공하였습니다."),
+    AVAILABLE(HttpStatus.OK, "OK200", "리뷰 작성 가능한 식당입니다.")
+    ;
 
     private final HttpStatus status;
     private final String code;

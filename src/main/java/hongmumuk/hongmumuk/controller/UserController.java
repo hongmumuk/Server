@@ -1,6 +1,7 @@
 package hongmumuk.hongmumuk.controller;
 
 import hongmumuk.hongmumuk.common.JwtUtil;
+import hongmumuk.hongmumuk.dto.PageDto;
 import hongmumuk.hongmumuk.dto.ProfileDto;
 import hongmumuk.hongmumuk.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -48,5 +49,11 @@ public class UserController {
     public ResponseEntity<?> deleteUser(){
         String email = JwtUtil.getCurrentUserEmail();
         return userService.deleteUser(email);
+    }
+
+    @GetMapping("/review")
+    public ResponseEntity<?> getMyReviews(@RequestParam int page, @RequestParam String sort){
+        String email = JwtUtil.getCurrentUserEmail();
+        return userService.getMyReviews(email, page, sort);
     }
 }

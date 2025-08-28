@@ -18,7 +18,10 @@ public enum ErrorStatus {
     LIKED_NOT_EXISTS(HttpStatus.BAD_REQUEST, "BAD400_6", "좋아요한 식당이 없습니다."),
     INCORRECT_PASSWORD(HttpStatus.BAD_REQUEST, "BAD400_7", "기존 비밀번호가 틀렸습니다."),
     UNAUTHORIZED_ERROR(HttpStatus.UNAUTHORIZED, "COMMON401", "해당 리소스에 유효한 인증 자격 증명이 필요합니다."),
-    RESTAURANT_NOT_FOUND(HttpStatus.BAD_REQUEST, "BAD400_8", "해당 식당이 없습니다.")
+    RESTAURANT_NOT_FOUND(HttpStatus.BAD_REQUEST, "BAD400_8", "해당 식당이 없습니다."),
+    REVIEW_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "BAD400_9", "이미 리뷰를 작성한 식당입니다."),
+    REVIEW_NOT_FOUND(HttpStatus.BAD_REQUEST, "BAD400_10", "해당 리뷰를 찾을 수 없습니다."),
+    ALREADY_REVIEWED(HttpStatus.BAD_REQUEST, "BAD400_11", "이미 리뷰를 작성한 식당입니다.")
     ;
 
     private final HttpStatus status;
